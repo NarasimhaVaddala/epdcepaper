@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crop PDF</title>
+    <link rel="stylesheet" href="https://unpkg.com/jcrop/dist/jcrop.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    <script src="https://unpkg.com/jcrop"></script>
+    <style>
+      img {
+        max-width: 100%;
+        height: auto;
+        margin-top: 20px;
+      }
+      button {
+        margin: 10px;
+        padding: 10px 20px;
+        font-size: 16px;
+      }
+      #croppedImg {
+        display: none;
+      }
+      #debugInfo {
+        margin-top: 10px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        background-color: #f5f5f5;
+        font-family: monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>CROP TEST</h1>
+
+    <!-- Rendered PDF Image -->
+    <img id="output" alt="Converted PDF Image" src="" style="display: none" />
+
+    <!-- Cropped Image -->
+    <img id="croppedImg" alt="Cropped Image" src="" style="display: none" />
+
+    <!-- Buttons -->
+    <button id="btnStartCrop">Start Crop</button>
+    <button id="btnCrop" style="display: none">Crop</button>
+    <button id="btnRefresh" style="display: none">Crop Another Image</button>
+
+    <!-- Debug Info -->
+    <div id="debugInfo" style="display: none">Debug info will appear here</div>
+
+    <script>
+      let pdfDoc = null;
+      let currentPage = 1;
+      let jcropInstance = null;
+      let canvas = null;
+      let currentSelection = null;
+
+      // Convert the first page of the PDF to an image
+      async function convertPdfToImage() {
+        const pdfUrl = "./dak.pdf";
+        pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
+        const page = await pdfDoc.getPage(currentPage);
+
+        const tempCanvas = document.createElement("canvas");
+        const context = tempCanvas.getContext("2d");
+        const viewport = page.getViewport({ scale: 1.5 });
+
+        tempCanvas.width = viewport.width;
+        tempCanvas.height = viewport.height;
+
+        const renderContext = {
+          canvasContext: context,
+          viewport: viewport,
+        };
+
+        await page.render(renderContext).promise;
+
+        const imgData = tempCanvas.toDataURL("image/png");
+        const output = document.getElementById("output");
+        output.src = imgData;
+        output.style.display = "block";
+
+        canvas = tempCanvas;
+      }
+
+      // Function to update debug info
+      function updateDebugInfo(info) {
+        const debugDiv = document.getElementById("debugInfo");
+        debugDiv.style.display = "block";
+        debugDiv.innerHTML = JSON.stringify(info, null, 2);
+      }
+
+      // Initialize Jcrop with default selection
+      function initializeCrop() {
+        const output = document.getElementById("output");
+
+        jcropInstance = Jcrop.attach(output, {
+          boxWidth: 400,
+          boxHeight: 400,
+        });
+
+        // Set default selection (e.g., 25% of image starting from top-left)
+        const imgWidth = output.naturalWidth;
+        const imgHeight = output.naturalHeight;
+        const defaultWidth = imgWidth * 0.25;
+        const defaultHeight = imgHeight * 0.25;
+
+        jcropInstance.newWidget({
+          x: 50,
+          y: 50,
+          w: defaultWidth,
+          h: defaultHeight,
+        });
+
+        currentSelection = {
+          x: 50,
+          y: 50,
+          w: defaultWidth,
+          h: defaultHeight,
+        };
+
+        // Show crop button
+        document.getElementById("btnCrop").style.display = "inline-block";
+        document.getElementById("btnStartCrop").style.display = "none";
+
+        // Update debug info
+        updateDebugInfo({
+          message: "Crop initialized",
+          selection: currentSelection,
+        });
+
+        // Listen for crop changes
+        jcropInstance.listen("crop.change", (widget, e) => {
+          if (widget) {
+            currentSelection = {
+              x: Math.round(widget.pos.x),
+              y: Math.round(widget.pos.y),
+              w: Math.round(widget.pos.w),
+              h: Math.round(widget.pos.h),
+            };
+            updateDebugInfo({
+              message: "Selection updated",
+              selection: currentSelection,
+            });
+          }
+        });
+      }
+
+      // Crop button functionality
+      document.getElementById("btnCrop").addEventListener("click", function () {
+        if (!jcropInstance || !currentSelection) {
+          alert("Please start cropping first.");
+          return;
+        }
+
+        const { x, y, w, h } = currentSelection;
+
+        if (!w || !h || w <= 0 || h <= 0) {
+          alert("Please select a valid crop area.");
+          return;
+        }
+
+        const croppedCanvas = cropCanvas(canvas, x, y, w, h);
+        const croppedImg = document.getElementById("croppedImg");
+        croppedImg.src = croppedCanvas.toDataURL();
+        croppedImg.style.display = "block";
+
+        document.getElementById("btnRefresh").style.display = "inline-block";
+      });
+
+      // Refresh button
+      document
+        .getElementById("btnRefresh")
+        .addEventListener("click", function () {
+          location.reload();
+        });
+
+      // Crop canvas function
+      function cropCanvas(originalCanvas, xAxis, yAxis, width, height) {
+        const croppedCanvas = document.createElement("canvas");
+        const ctx = croppedCanvas.getContext("2d");
+
+        croppedCanvas.width = width;
+        croppedCanvas.height = height;
+
+        ctx.drawImage(
+          originalCanvas,
+          xAxis,
+          yAxis,
+          width,
+          height,
+          0,
+          0,
+          width,
+          height
+        );
+
+        return croppedCanvas;
+      }
+
+      // Page load
+      window.onload = async () => {
+        await convertPdfToImage();
+
+        // Start Crop button event listener
+        document
+          .getElementById("btnStartCrop")
+          .addEventListener("click", initializeCrop);
+      };
+    </script>
+  </body>
+</html>

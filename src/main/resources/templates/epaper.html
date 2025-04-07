@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EPDC</title>
+    <script
+      src="https://kit.fontawesome.com/109a493327.js"
+      crossorigin="anonymous"
+    ></script>
+    <!-- Add PDF.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="header">
+      <div class="heading">
+        <h1>దక్షిణాది</h1>
+      </div>
+      <div class="social-links">
+        <a href="#" class="social-icon"
+          ><i class="fa-brands fa-facebook"></i
+        ></a>
+        <a href="#" class="social-icon"><i class="fa-brands fa-twitter"></i></a>
+        <a href="#" class="social-icon"
+          ><i class="fa-brands fa-instagram"></i
+        ></a>
+        <a href="#" class="social-icon"><i class="fa-brands fa-youtube"></i></a>
+        <a
+          href="https://www.whatsapp.com/channel/0029Val9IAIAO7RG4PtXdQ2W"
+          class="social-icon"
+          ><i class="fa-brands fa-whatsapp"></i
+        ></a>
+      </div>
+    </div>
+    <div class="main-editions">
+      <h1>MAIN EDITIONS</h1>
+
+      <select id="date-picker">
+        <option value="">Select Date</option>
+      </select>
+
+      <div class="edition-container">
+        <!-- Edition 1 -->
+        <div class="edition-card" th:if="${epaper != null}">
+          <a
+            href="#"
+            class="view-pdf"
+            th:attr="data-pdf-url=${epaper.edition1PdfFile}, data-title=${epaper.edition1Title}"
+            data-title="${epaper.edition1Title}"
+          >
+            <img th:src="${epaper.edition1Image}" alt="Edition 1 Image" />
+          </a>
+          <div class="edition-title" th:text="${epaper.edition1Title}"></div>
+        </div>
+        <!-- Advertisement Section -->
+        <div class="right-section" th:if="${epaper != null}">
+          <div class="section ad-section">
+            <a th:href="${epaper.advertisementLink}" target="_blank">
+              <img th:src="${epaper.advertisementImage}" alt="Advertisement" />
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- PDF Viewer Modal -->
+    <div class="pdf-modal" id="pdf-modal">
+      <div class="pdf-modal-content">
+        <span class="close-modal">&times;</span>
+        <div class="pdf-toolbar">
+          <div>
+            <button class="tool-button" id="prev-page">Previous</button>
+            <button class="tool-button" id="next-page">Next</button>
+            <button class="tool-button" id="zoom-in">Zoom In</button>
+            <button class="tool-button" id="zoom-out">Zoom Out</button>
+            <button class="tool-button" id="crop-btn">Crop</button>
+            <button class="tool-button" id="share-btn" style="display: none">
+              Share
+            </button>
+          </div>
+          <div id="page-info">
+            Page: <span id="current-page">1</span> of
+            <span id="total-pages">1</span>
+          </div>
+        </div>
+        <div id="pdf-viewer-container">
+          <canvas id="pdf-canvas"></canvas>
+          <div class="crop-overlay" id="crop-overlay"></div>
+          <div class="watermark" id="watermark">దక్షిణాది</div>
+        </div>
+      </div>
+    </div>
+    <!-- Share Modal -->
+    <div class="share-modal" id="share-modal">
+      <div class="share-modal-content">
+        <h3>Share Cropped Image</h3>
+        <div id="cropped-image-container"></div>
+        <div class="share-buttons">
+          <button class="tool-button" id="download-btn">Download</button>
+          <button class="tool-button" id="share-wa-btn">
+            Share on WhatsApp
+          </button>
+          <button class="tool-button" id="close-share-btn">Close</button>
+        </div>
+      </div>
+    </div>
+    <footer>
+      <div class="footer-bottom">
+        <p>Copyright &copy; EPDC @ 2025. All rights reserved.</p>
+        <p class="company">
+          Powered By <a target="_blank" href="https://nuhvin.com/">Nuhvin</a>
+        </p>
+      </div>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
