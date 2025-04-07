@@ -166,8 +166,9 @@ function renderPage(num) {
 
   pdfDoc.getPage(num).then(function (page) {
     const devicePixelRatio = window.devicePixelRatio || 1; // Get device pixel ratio
+    const enhancedRatio = devicePixelRatio * 2;
     const viewport = page.getViewport({
-      scale: scale * devicePixelRatio,
+      scale: scale * enhancedRatio,
     });
 
     // Set canvas dimensions based on scaled viewport
