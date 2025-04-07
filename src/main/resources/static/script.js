@@ -375,7 +375,7 @@ function showShareModal() {
     parseFloat(cropOverlay.style.height.replace("px", "")) || 0;
 
   // Create high-resolution canvas
-  const scaleFactor = 2; // Double resolution for crisp text
+  const scaleFactor = 4; // Double resolution for crisp text
   const topTextHeight = 40;
   const bottomTextHeight = 50;
 
