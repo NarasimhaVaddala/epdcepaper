@@ -9,6 +9,6 @@ import com.epdcepaper.epdcepaper.entity.Epaper;
 
 public interface EpaperRepository extends MongoRepository<Epaper, String> {
     Epaper findFirstByOrderByIdAsc();
-    
+
     List<Epaper> findByDate(Date date);
 }

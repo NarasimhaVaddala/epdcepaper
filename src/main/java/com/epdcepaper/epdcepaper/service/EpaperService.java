@@ -21,8 +21,8 @@ public class EpaperService {
     public List<Epaper> getEditionsByDate(Date date) {
         return contentRepository.findByDate(date);
     }
-   public Epaper getLatestContent() {
+
+    public Epaper getLatestContent() {
         return contentRepository.findFirstByOrderByIdAsc(); // Fetch latest content
     }
 }
-

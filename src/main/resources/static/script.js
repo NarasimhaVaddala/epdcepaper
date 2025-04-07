@@ -23,13 +23,79 @@ for (let i = 1; i <= 7; i++) {
   datepicker.appendChild(option);
 }
 
-// Event listener for selection change
-datepicker.addEventListener("change", async function () {
-  console.log("Selected Date:", datepicker.value);
+// Global variable to track our dynamic edition card
+let dynamicEditionCard = null;
 
-  const resp = await fetch("/");
+datepicker.addEventListener("change", async function () {
+  const selectedDate = datepicker.value;
+  if (!selectedDate) return;
+
+  try {
+    const resp = await fetch(`/getbydate?date=${selectedDate}`);
+    const data = await resp.json();
+
+    if (data && data.length > 0) {
+      const epaper = data[0];
+      updateOrCreateDynamicCard(epaper);
+    } else {
+      alert("No newspaper found for the selected date");
+      // Remove the dynamic card if no data found
+      if (dynamicEditionCard) {
+        dynamicEditionCard.remove();
+        dynamicEditionCard = null;
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    alert("Error loading newspaper data. Please try again.");
+  }
 });
 
+function updateOrCreateDynamicCard(epaper) {
+  const editionContainer = document.querySelector(".edition-container");
+
+  // Create the card if it doesn't exist
+  if (!dynamicEditionCard) {
+    dynamicEditionCard = document.createElement("div");
+    dynamicEditionCard.className = "edition-card dynamic-edition";
+    dynamicEditionCard.style.width = "30%";
+    dynamicEditionCard.style.marginLeft = "0";
+
+    dynamicEditionCard.innerHTML = `
+      <a href="#" class="view-pdf">
+        <img src="" alt="" />
+      </a>
+      <div class="edition-title"></div>
+    `;
+
+    // Insert after the original card
+    const originalCard = document.querySelector(
+      ".edition-card:not(.dynamic-edition)"
+    );
+    editionContainer.insertBefore(dynamicEditionCard, originalCard.nextSibling);
+
+    // Bind click event
+    dynamicEditionCard
+      .querySelector(".view-pdf")
+      .addEventListener("click", function (e) {
+        e.preventDefault();
+        const pdfUrl = this.getAttribute("data-pdf-url");
+        const title = this.getAttribute("data-title");
+        openPdfModal(pdfUrl, title);
+      });
+  }
+
+  // Update the card content
+  const pdfLink = dynamicEditionCard.querySelector(".view-pdf");
+  const editionImage = dynamicEditionCard.querySelector("img");
+  const editionTitle = dynamicEditionCard.querySelector(".edition-title");
+
+  pdfLink.setAttribute("data-pdf-url", epaper.edition1PdfFile);
+  pdfLink.setAttribute("data-title", epaper.edition1Title || "");
+  editionImage.src = epaper.edition1Image;
+  editionImage.alt = epaper.edition1Title || "Edition Image";
+  editionTitle.textContent = epaper.edition1Title || "";
+}
 // Initialize PDF.js
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.worker.min.js";
@@ -153,6 +219,7 @@ function closePdfModal() {
   document.title = "EPDC";
 }
 
+// Replace your existing renderPage function with this responsive version
 function renderPage(num) {
   if (pageRendering) {
     pageNumPending = num;
@@ -165,23 +232,37 @@ function renderPage(num) {
   document.getElementById("current-page").textContent = num;
 
   pdfDoc.getPage(num).then(function (page) {
-    const devicePixelRatio = window.devicePixelRatio || 1; // Get device pixel ratio
-    const enhancedRatio = devicePixelRatio * 2;
-    const viewport = page.getViewport({
-      scale: scale * enhancedRatio,
-    });
+    // Get the container dimensions
+    const container = pdfViewerContainer;
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight;
 
-    // Set canvas dimensions based on scaled viewport
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
+    // Calculate the appropriate scale to fit the page
+    const viewport = page.getViewport({ scale: 1.0 });
+    const scale = Math.min(
+      (containerWidth - 20) / viewport.width, // -20 for padding
+      (containerHeight - 20) / viewport.height
+    );
 
-    // Scale the rendering context to match the increased resolution
-    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0); // Reset transform
-    ctx.imageSmoothingEnabled = false; // Disable smoothing for sharper edges
+    // Apply the user's zoom level
+    const finalScale = scale * window.devicePixelRatio * (window.scale || 1);
+
+    // Get the scaled viewport
+    const scaledViewport = page.getViewport({ scale: finalScale });
+
+    // Set canvas dimensions
+    canvas.width = scaledViewport.width;
+    canvas.height = scaledViewport.height;
+
+    // Adjust canvas display size for proper scaling
+    canvas.style.width = `${scaledViewport.width / window.devicePixelRatio}px`;
+    canvas.style.height = `${
+      scaledViewport.height / window.devicePixelRatio
+    }px`;
 
     const renderContext = {
       canvasContext: ctx,
-      viewport: viewport,
+      viewport: scaledViewport,
     };
 
     const renderTask = page.render(renderContext);
@@ -194,6 +275,7 @@ function renderPage(num) {
     });
   });
 }
+
 function goToPreviousPage() {
   if (pageNum <= 1) {
     return;
@@ -211,15 +293,14 @@ function goToNextPage() {
 }
 
 function zoomIn() {
-  scale += 0.25;
+  window.scale = (window.scale || 1) * 1.25;
   queueRenderPage(pageNum);
 }
 
 function zoomOut() {
-  if (scale > 0.25) {
-    scale -= 0.25;
-    queueRenderPage(pageNum);
-  }
+  window.scale = (window.scale || 1) * 0.8;
+  if (window.scale < 0.25) window.scale = 0.25;
+  queueRenderPage(pageNum);
 }
 
 function queueRenderPage(num) {
@@ -244,41 +325,59 @@ function toggleCrop() {
   }
 }
 
+// / Update the startCrop function
 function startCrop(e) {
   if (!isCropping) return;
   e.preventDefault();
   isDrawing = true;
-  const rect = pdfViewerContainer.getBoundingClientRect();
-  const scrollLeft = pdfViewerContainer.scrollLeft;
-  const scrollTop = pdfViewerContainer.scrollTop;
-  startX = e.clientX - rect.left + scrollLeft;
-  startY = e.clientY - rect.top + scrollTop;
-  cropOverlay.style.left = startX + "px";
-  cropOverlay.style.top = startY + "px";
+
+  const coords = getAdjustedCoordinates(
+    e.clientX || e.touches[0].clientX,
+    e.clientY || e.touches[0].clientY
+  );
+
+  startX = coords.x;
+  startY = coords.y;
+
+  // Set overlay position (in display pixels)
+  const displayX = startX / (canvas.width / parseFloat(canvas.style.width));
+  const displayY = startY / (canvas.height / parseFloat(canvas.style.height));
+
+  cropOverlay.style.left = displayX + "px";
+  cropOverlay.style.top = displayY + "px";
   cropOverlay.style.width = "0px";
   cropOverlay.style.height = "0px";
   cropOverlay.style.display = "block";
 }
+
+// Update the drawCrop function
 function drawCrop(e) {
   if (!isCropping || !isDrawing) return;
   e.preventDefault();
-  const rect = pdfViewerContainer.getBoundingClientRect();
-  const scrollLeft = pdfViewerContainer.scrollLeft;
-  const scrollTop = pdfViewerContainer.scrollTop;
-  endX = e.clientX - rect.left + scrollLeft;
-  endY = e.clientY - rect.top + scrollTop;
-  // Ensure we don't go outside the canvas
-  endX = Math.max(0, Math.min(endX, canvas.width));
-  endY = Math.max(0, Math.min(endY, canvas.height));
-  const width = endX - startX;
-  const height = endY - startY;
-  cropOverlay.style.width = Math.abs(width) + "px";
-  cropOverlay.style.height = Math.abs(height) + "px";
-  if (width < 0) {
-    cropOverlay.style.left = endX + "px";
+
+  const coords = getAdjustedCoordinates(
+    e.clientX || e.touches[0].clientX,
+    e.clientY || e.touches[0].clientY
+  );
+
+  endX = coords.x;
+  endY = coords.y;
+
+  // Calculate display dimensions for the overlay
+  const displayScaleX = canvas.width / parseFloat(canvas.style.width);
+  const displayScaleY = canvas.height / parseFloat(canvas.style.height);
+
+  const displayWidth = Math.abs(endX - startX) / displayScaleX;
+  const displayHeight = Math.abs(endY - startY) / displayScaleY;
+
+  cropOverlay.style.width = displayWidth + "px";
+  cropOverlay.style.height = displayHeight + "px";
+
+  if (endX < startX) {
+    cropOverlay.style.left = endX / displayScaleX + "px";
   }
-  if (height < 0) {
-    cropOverlay.style.top = endY + "px";
+  if (endY < startY) {
+    cropOverlay.style.top = endY / displayScaleY + "px";
   }
 }
 function endCrop(e) {
@@ -400,7 +499,7 @@ function showShareModal() {
     cropHeight + topTextHeight + bottomTextHeight
   );
 
-  // Draw cropped image with precise coordinates
+  // Draw cropped image with precise  s
   tempCtx.drawImage(
     canvas,
     Math.floor(cropLeft), // Align to pixel grid
@@ -521,3 +620,28 @@ function fallbackWhatsAppShare(imageSrc) {
   )}%0A%0A${encodeURIComponent(imageSrc)}`;
   window.open(url, "_blank");
 }
+
+function getAdjustedCoordinates(clientX, clientY) {
+  const rect = pdfViewerContainer.getBoundingClientRect();
+  const scrollLeft = pdfViewerContainer.scrollLeft;
+  const scrollTop = pdfViewerContainer.scrollTop;
+
+  // Calculate the scaling factor between the canvas display size and actual size
+  const scaleX = canvas.width / parseFloat(canvas.style.width);
+  const scaleY = canvas.height / parseFloat(canvas.style.height);
+
+  return {
+    x: (clientX - rect.left + scrollLeft) * scaleX,
+    y: (clientY - rect.top + scrollTop) * scaleY,
+  };
+}
+
+let resizeTimer;
+window.addEventListener("resize", function () {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(function () {
+    if (pdfDoc) {
+      renderPage(pageNum);
+    }
+  }, 250);
+});

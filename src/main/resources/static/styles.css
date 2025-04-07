@@ -323,3 +323,91 @@ footer {
   width: 80%;
   margin: 0 auto;
 }
+
+/* Update these styles in your existing CSS */
+
+#pdf-viewer-container {
+  width: 100%;
+  flex-grow: 1;
+  overflow: auto;
+  border: 1px solid #ddd;
+  position: relative;
+  margin-bottom: 20px;
+  height: 80vh;
+  touch-action: none; /* Prevent default touch behaviors */
+}
+
+#pdf-canvas {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  touch-action: none; /* Prevent default touch behaviors */
+}
+
+.crop-overlay {
+  position: absolute;
+  border: 2px dashed #ffc107;
+  background-color: rgba(255, 193, 7, 0.2);
+  pointer-events: none;
+  display: none;
+  z-index: 10;
+  box-sizing: border-box;
+}
+
+/* Add these new responsive styles */
+.pdf-viewer-wrapper {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.pdf-toolbar {
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.tool-button {
+  white-space: nowrap;
+  margin: 2px;
+}
+
+@media (max-width: 768px) {
+  #pdf-viewer-container {
+    height: 70vh;
+  }
+
+  .pdf-modal-content {
+    padding: 5px;
+  }
+
+  .tool-button {
+    padding: 3px 6px;
+    font-size: 14px;
+  }
+
+  .share-modal {
+    width: 95%;
+    height: auto;
+    max-height: 90vh;
+  }
+
+  #cropped-image-container {
+    max-height: 300px;
+  }
+}
+
+.dynamic-edition {
+  position: relative;
+}
+
+/* Optional: Add a visual indicator that this is a different date */
+.dynamic-edition::before {
+  content: "Selected Date";
+  position: absolute;
+  top: -20px;
+  left: 0;
+  font-size: 12px;
+  color: #666;
+}
