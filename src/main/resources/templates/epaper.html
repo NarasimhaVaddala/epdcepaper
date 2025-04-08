@@ -8,10 +8,11 @@
       src="https://kit.fontawesome.com/109a493327.js"
       crossorigin="anonymous"
     ></script>
-    <!-- Add PDF.js library -->
+    <!-- PDF.js and Jcrop libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
+    <link rel="stylesheet" href="https://unpkg.com/jcrop/dist/jcrop.css" />
+    <script src="https://unpkg.com/jcrop"></script>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -37,13 +38,10 @@
     </div>
     <div class="main-editions">
       <h1>MAIN EDITIONS</h1>
-
       <select id="date-picker">
         <option value="">Select Date</option>
       </select>
-
       <div class="edition-container">
-        <!-- Edition 1 -->
         <div class="edition-card" th:if="${epaper != null}">
           <a
             href="#"
@@ -55,7 +53,6 @@
           </a>
           <div class="edition-title" th:text="${epaper.edition1Title}"></div>
         </div>
-        <!-- Advertisement Section -->
         <div class="right-section" th:if="${epaper != null}">
           <div class="section ad-section">
             <a th:href="${epaper.advertisementLink}" target="_blank">
@@ -68,7 +65,7 @@
     <!-- PDF Viewer Modal -->
     <div class="pdf-modal" id="pdf-modal">
       <div class="pdf-modal-content">
-        <span class="close-modal">&times;</span>
+        <span class="close-modal">×</span>
         <div class="pdf-toolbar">
           <div>
             <button class="tool-button" id="prev-page">Previous</button>
@@ -85,12 +82,9 @@
             <span id="total-pages">1</span>
           </div>
         </div>
-        <!-- Update the PDF viewer container in your HTML -->
         <div id="pdf-viewer-container">
           <div class="pdf-viewer-wrapper">
-            <canvas id="pdf-canvas"></canvas>
-            <div class="crop-overlay" id="crop-overlay"></div>
-            <div class="watermark" id="watermark">దక్షిణాది</div>
+            <img id="pdf-image" alt="PDF Image" style="display: none" />
           </div>
         </div>
       </div>
@@ -111,13 +105,12 @@
     </div>
     <footer>
       <div class="footer-bottom">
-        <p>Copyright &copy; EPDC @ 2025. All rights reserved.</p>
+        <p>Copyright © EPDC @ 2025. All rights reserved.</p>
         <p class="company">
           Powered By <a target="_blank" href="https://nuhvin.com/">Nuhvin</a>
         </p>
       </div>
     </footer>
-
     <script src="script.js"></script>
   </body>
 </html>

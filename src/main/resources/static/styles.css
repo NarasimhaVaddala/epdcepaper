@@ -19,12 +19,11 @@ body {
   font-size: 24px;
   text-align: left;
   margin-bottom: 20px;
-  margin-left: -50px;
 }
 .edition-container {
   display: flex;
   justify-content: space-between;
-  gap: 100px;
+  gap: 20px;
 }
 .edition-card {
   width: 30%;
@@ -33,7 +32,6 @@ body {
   border-radius: 10px;
   overflow: hidden;
   text-align: center;
-  margin-left: -50px;
 }
 .edition-card img {
   width: 100%;
@@ -49,7 +47,6 @@ body {
   height: 100px;
   width: 100%;
   background-color: #9acd32;
-  margin-top: -21px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -60,7 +57,6 @@ body {
 }
 .social-links {
   margin-right: 75px;
-  margin-top: 20px;
 }
 .social-icon {
   display: inline-block;
@@ -73,7 +69,6 @@ body {
   margin-left: 10px;
   border-radius: 50%;
   text-decoration: none;
-  font-weight: bold;
 }
 footer {
   height: 100px;
@@ -88,13 +83,10 @@ footer {
   color: white;
 }
 .footer-bottom a {
-  color: rgb(28 26 26);
+  color: #1c1a1a;
   text-decoration: none;
 }
-.header {
-  display: flex;
-  justify-content: space-between;
-}
+
 /* PDF Viewer Modal */
 .pdf-modal {
   display: none;
@@ -134,6 +126,7 @@ footer {
   position: relative;
   margin-bottom: 20px;
   height: 80vh;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 .pdf-toolbar {
   background-color: #f5f5f5;
@@ -150,18 +143,9 @@ footer {
   border-radius: 4px;
   cursor: pointer;
   margin-right: 5px;
-  margin-top: 10px;
 }
 .tool-button:hover {
   background-color: #7cb342;
-}
-.crop-overlay {
-  position: absolute;
-  border: 2px dashed #ffc107;
-  background-color: rgba(255, 193, 7, 0.2);
-  pointer-events: none;
-  display: none;
-  z-index: 10;
 }
 .share-modal {
   display: none;
@@ -174,21 +158,10 @@ footer {
   z-index: 1001;
   border-radius: 5px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-  /* max-width: 90%; */
   width: 40%;
-  height: 100%;
 }
 .share-modal-content {
   text-align: center;
-}
-.watermark {
-  position: absolute;
-  opacity: 0.7;
-  font-size: 24px;
-  color: #9acd32;
-  pointer-events: none;
-  z-index: 5;
-  display: none;
 }
 #cropped-image-container {
   max-height: 400px;
@@ -200,15 +173,20 @@ footer {
   max-width: 100%;
   border: 1px solid #ddd;
 }
+#pdf-image {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
   .header {
     height: 75px;
-    margin-top: 0px;
   }
   .main-editions h1 {
     font-size: 20px;
-    margin-left: 0;
     text-align: center;
   }
   .header h1 {
@@ -221,36 +199,18 @@ footer {
   }
   .edition-card {
     width: 80%;
-    margin-left: 0;
   }
   .right-section {
     margin-left: 0;
     width: 80%;
     margin-top: 20px;
   }
-  .sidebar {
-    margin-left: 0;
-    width: 100%;
-  }
-  .sidebar-item img {
-    height: auto;
-    max-width: 100%;
-  }
-  .main-editions {
-    margin-left: 0px;
-  }
   .social-links {
-    display: flex;
-    font-size: 1rem;
-  }
-  .social-links {
-    margin-top: 0px;
-    width: 52%;
+    margin-right: 10px;
   }
   .social-icon {
     width: 35px;
-    height: 37px;
-    background-color: #f7eded;
+    height: 35px;
   }
   .pdf-modal-content {
     width: 95%;
@@ -267,28 +227,9 @@ footer {
   .share-modal {
     width: 90%;
   }
-  .share-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 5px;
-  }
-  .share-buttons .tool-button {
-    margin: 2px;
-  }
-}
-@media (max-width: 1024px) {
-  .edition-container {
-    gap: 69px;
-  }
-  .main-editions h1 {
-    margin-left: -3px;
-  }
-  .edition-card {
-    margin-left: 0px;
-  }
 }
 
+/* Date Picker */
 #date-picker {
   font-family: Arial, sans-serif;
   font-size: 16px;
@@ -297,117 +238,148 @@ footer {
   border: 2px solid #ccc;
   border-radius: 8px;
   width: 200px;
-  appearance: none; /* Remove default browser styling */
-  outline: none;
-  transition: all 0.3s ease;
   margin: 1rem;
 }
-
 #date-picker:focus {
   border-color: #4a90e2;
   background-color: #e7f0ff;
 }
-
-#date-picker option {
-  padding: 8px;
-  background-color: #fff;
-}
-
 #date-picker:hover {
   border-color: #007bff;
   cursor: pointer;
 }
 
-#pdf-canvas {
-  height: auto;
-  width: 80%;
-  margin: 0 auto;
+/* Enhanced mobile-friendly styles for Jcrop */
+
+/* Fix Jcrop positioning for better touch handling */
+.jcrop-stage {
+  position: relative !important;
+  z-index: 5 !important;
+  overflow: visible !important; /* Ensure handles don't get clipped */
+  touch-action: none !important; /* Prevent browser handling of touch events */
 }
 
-/* Update these styles in your existing CSS */
-
-#pdf-viewer-container {
-  width: 100%;
-  flex-grow: 1;
-  overflow: auto;
-  border: 1px solid #ddd;
-  position: relative;
-  margin-bottom: 20px;
-  height: 80vh;
-  touch-action: none; /* Prevent default touch behaviors */
+.jcrop-image-stage {
+  position: relative !important;
+  z-index: 1 !important;
+  width: auto !important;
+  height: auto !important;
+  touch-action: none !important; /* Prevent browser handling of touch events */
 }
 
-#pdf-canvas {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 0 auto;
-  touch-action: none; /* Prevent default touch behaviors */
+/* Make sure the image doesn't interfere with touch events */
+.jcrop-image-stage img {
+  position: relative !important;
+  z-index: 0 !important;
+  max-width: 100% !important;
+  height: auto !important;
+  touch-action: none !important;
 }
 
-.crop-overlay {
-  position: absolute;
-  border: 2px dashed #ffc107;
-  background-color: rgba(255, 193, 7, 0.2);
-  pointer-events: none;
-  display: none;
-  z-index: 10;
-  box-sizing: border-box;
+/* Ensure crop selection is on top */
+.jcrop-selection {
+  z-index: 3 !important;
+  touch-action: none !important;
+  cursor: move !important;
+  border: 1px solid #fff !important;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5) !important;
 }
 
-/* Add these new responsive styles */
-.pdf-viewer-wrapper {
-  position: relative;
-  width: 100%;
-  margin: 0 auto;
-  overflow: hidden;
+/* Make shade appear properly above image */
+.jcrop-shade {
+  z-index: 2 !important;
+  touch-action: none !important;
 }
 
-.pdf-toolbar {
-  flex-wrap: wrap;
-  gap: 5px;
+/* Ensure handle elements are on top and accessible */
+.jcrop-handle {
+  z-index: 10 !important;
+  touch-action: none !important;
+  border-radius: 50% !important;
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  border: 2px solid rgba(0, 0, 0, 0.8) !important;
 }
 
-.tool-button {
-  white-space: nowrap;
-  margin: 2px;
-}
-
+/* Mobile specific enhancements */
 @media (max-width: 768px) {
+  /* Make PDF viewer container better handle touch events */
   #pdf-viewer-container {
-    height: 70vh;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain !important;
   }
 
-  .pdf-modal-content {
-    padding: 5px;
+  /* Larger handles for touch devices */
+  .jcrop-handle {
+    width: 24px !important;
+    height: 24px !important;
+    opacity: 0.8 !important;
   }
 
+  /* More visible selection border */
+  .jcrop-selection {
+    border: 2px solid white !important;
+  }
+
+  /* Better toolbar buttons for mobile */
   .tool-button {
-    padding: 3px 6px;
-    font-size: 14px;
+    padding: 8px 12px !important;
+    min-height: 44px !important;
+    min-width: 60px !important;
+    font-size: 16px !important;
+    margin-bottom: 8px !important;
   }
 
+  /* Larger close button for mobile */
+  .close-modal {
+    font-size: 36px !important;
+    padding: 10px !important;
+  }
+
+  /* Adjust toolbar layout for small screens */
+  .pdf-toolbar {
+    flex-direction: column !important;
+  }
+
+  .pdf-toolbar > div:first-child {
+    margin-bottom: 10px !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+
+  /* Center page info on mobile */
+  #page-info {
+    text-align: center !important;
+    width: 100% !important;
+  }
+
+  /* Adjust share modal for mobile */
   .share-modal {
-    width: 95%;
-    height: auto;
-    max-height: 90vh;
-  }
-
-  #cropped-image-container {
-    max-height: 300px;
+    top: 50% !important;
+    width: 90% !important;
+    max-height: 80vh !important;
+    overflow-y: auto !important;
   }
 }
 
-.dynamic-edition {
-  position: relative;
+/* Special handling for iOS devices */
+@supports (-webkit-touch-callout: none) {
+  .jcrop-stage,
+  .jcrop-image-stage,
+  .jcrop-selection,
+  .jcrop-handle {
+    touch-action: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+  }
+
+  /* Fix Safari scrolling issues */
+  #pdf-viewer-container {
+    -webkit-overflow-scrolling: touch !important;
+  }
 }
 
-/* Optional: Add a visual indicator that this is a different date */
-.dynamic-edition::before {
-  content: "Selected Date";
-  position: absolute;
-  top: -20px;
-  left: 0;
-  font-size: 12px;
-  color: #666;
+/* Fix for multiple crop elements */
+.jcrop-widget {
+  touch-action: none !important;
 }
