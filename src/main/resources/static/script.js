@@ -1,4 +1,7 @@
 // Date picker functionality
+
+const mainUrl = "https://admin.epdcindia.com"
+
 let datepicker = document.getElementById("date-picker");
 const todayDate = new Date();
 
@@ -32,7 +35,7 @@ async function getInitDate(date){
       
       updateOrCreateDynamicCard(epaper);
     } else {
-      alert("No newspaper found for the selected date");
+      // alert("No newspaper found for the selected date");
       if (dynamicEditionCard) {
         dynamicEditionCard.remove();
         dynamicEditionCard = null;
@@ -56,6 +59,51 @@ datepicker.addEventListener("change", async function () {
   getInitDate(selectedDate)
 });
 
+// Function to find the most recent available date
+async function findMostRecentDate() {
+  const dates = Array.from(datepicker.options).map((option) => option.value);
+  for (const date of dates) {
+    try {
+      const resp = await fetch(`/getbydate?date=${date}`);
+      const data = await resp.json();
+      if (data && data.length > 0) {
+        return date; // Return the first date with available data
+      }
+    } catch (error) {
+      console.error(`Error checking data for date ${date}:`, error);
+    }
+  }
+  return null; // No data found for any date
+}
+
+// Initialize the page with the current date or fallback to the most recent date
+(async function initializePage() {
+  const currentDate = formatDate(new Date());
+  let hasCurrentDateData = false;
+
+  try {
+    const resp = await fetch(`/getbydate?date=${currentDate}`);
+    const data = await resp.json();
+    if (data && data.length > 0) {
+      hasCurrentDateData = true;
+      console.log(currentDate , "current date");
+      
+      getInitDate(currentDate); // Display current date data
+    }
+  } catch (error) {
+    console.error("Error checking current date data:", error);
+  }
+
+  if (!hasCurrentDateData) {
+    const mostRecentDate = await findMostRecentDate();
+    if (mostRecentDate) {
+      getInitDate(mostRecentDate); // Display most recent date data
+    } else {
+      alert("No newspaper data available for the recent dates.");
+    }
+  }
+})();
+
 function updateOrCreateDynamicCard(epaper) {
   const editionContainer = document.querySelector(".edition-container");
   if (!dynamicEditionCard) {
@@ -72,16 +120,20 @@ function updateOrCreateDynamicCard(epaper) {
     );
     editionContainer.appendChild(dynamicEditionCard, originalCard);
 
-    let adContainer = document.getElementById("ad-section")
+    let adContainer = document.getElementById("ad-section");
+
+    // Construct the full paths for the advertisement image and link
+    const baseUrl = "https://admin.epdcindia.com/uploads/";
+    const adImageName = epaper.advertisementImage; // Assuming this contains the raw image filename
+    const adLinkName = epaper.advertisementLink; // Assuming this contains the raw link filename
 
     adContainer.innerHTML = `
-     <a href="${epaper.advertisementLink}" target="_blank">
-              <img th:src="${epaper.advertisementImage}" alt="Advertisement" />
-            </a> 
-    `
+      <a href="${adLinkName}" target="_blank">
+        <img src="${baseUrl + encodeURIComponent(adImageName)}" alt="Advertisement" />
+      </a> 
+    `;
 
-    editionContainer.appendChild(adContainer)
-
+    editionContainer.appendChild(adContainer);
 
     dynamicEditionCard
       .querySelector(".view-pdf")
@@ -96,10 +148,21 @@ function updateOrCreateDynamicCard(epaper) {
   const pdfLink = dynamicEditionCard.querySelector(".view-pdf");
   const editionImage = dynamicEditionCard.querySelector("img");
   const editionTitle = dynamicEditionCard.querySelector(".edition-title");
-  pdfLink.setAttribute("data-pdf-url", epaper.edition1PdfFile);
-  pdfLink.setAttribute("data-title", epaper.edition1Title || "");
-  editionImage.src = epaper.edition1Image;
+
+  // Base URL for constructing paths
+  const baseUrl = "https://admin.epdcindia.com/uploads/";
+
+  // Construct the full image URL with encoding
+  const imageName = epaper.edition1Image; // Assuming this contains the raw image filename
+  editionImage.src = baseUrl + encodeURIComponent(imageName); // Prepend base URL and encode the image name
   editionImage.alt = epaper.edition1Title || "Edition Image";
+
+  // Construct the full PDF URL with encoding
+  const pdfName = epaper.edition1PdfFile; // Assuming this contains the raw PDF filename
+  pdfLink.setAttribute("data-pdf-url", baseUrl + encodeURIComponent(pdfName));
+  pdfLink.setAttribute("data-title", epaper.edition1Title || "");
+
+  // Update the edition title
   editionTitle.textContent = epaper.edition1Title || "";
 }
 
