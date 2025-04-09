@@ -23,6 +23,6 @@ public class EpaperService {
     }
 
     public Epaper getLatestContent() {
-        return contentRepository.findFirstByOrderByIdAsc(); // Fetch latest content
+        return contentRepository.findFirstByOrderByIdDesc();
     }
 }

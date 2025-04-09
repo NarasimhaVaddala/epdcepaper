@@ -8,7 +8,8 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import com.epdcepaper.epdcepaper.entity.Epaper;
 
 public interface EpaperRepository extends MongoRepository<Epaper, String> {
-    Epaper findFirstByOrderByIdAsc();
+    Epaper findFirstByOrderByIdDesc();
 
     List<Epaper> findByDate(Date date);
+
 }

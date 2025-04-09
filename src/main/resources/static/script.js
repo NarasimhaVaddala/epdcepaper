@@ -1,8 +1,9 @@
 // Date picker functionality
 
-const mainUrl = "https://admin.epdcindia.com"
-
+const mainUrl = "https://admin.epdcindia.com";
 let datepicker = document.getElementById("date-picker");
+let dynamicEditionCard = null;
+
 const todayDate = new Date();
 
 function formatDate(date) {
@@ -10,7 +11,7 @@ function formatDate(date) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const year = date.getFullYear();
   console.log(`${year}-${month}-${day}`);
-  
+
   return `${year}-${month}-${day}`;
 }
 
@@ -24,20 +25,18 @@ for (let i = 1; i <= 7; i++) {
   datepicker.appendChild(option);
 }
 
-
-async function getInitDate(date){
+async function getInitDate(date) {
   try {
     const resp = await fetch(`/getbydate?date=${date}`);
     const data = await resp.json();
     if (data && data.length > 0) {
       const epaper = data[0];
       console.log(epaper);
-      
+
       updateOrCreateDynamicCard(epaper);
     } else {
-      // alert("No newspaper found for the selected date");
+      alert("No newspaper found for the selected date");
       if (dynamicEditionCard) {
-        dynamicEditionCard.remove();
         dynamicEditionCard = null;
       }
     }
@@ -47,16 +46,14 @@ async function getInitDate(date){
   }
 }
 
-getInitDate(formatDate(new Date()))
-
-let dynamicEditionCard = null;
+// getInitDate(formatDate(new Date()));
 
 datepicker.addEventListener("change", async function () {
   const selectedDate = datepicker.value;
   if (!selectedDate) return;
   console.log(selectedDate);
-  
-  getInitDate(selectedDate)
+
+  getInitDate(selectedDate);
 });
 
 // Function to find the most recent available date
@@ -86,8 +83,8 @@ async function findMostRecentDate() {
     const data = await resp.json();
     if (data && data.length > 0) {
       hasCurrentDateData = true;
-      console.log(currentDate , "current date");
-      
+      console.log(currentDate, "current date");
+
       getInitDate(currentDate); // Display current date data
     }
   } catch (error) {
@@ -106,6 +103,11 @@ async function findMostRecentDate() {
 
 function updateOrCreateDynamicCard(epaper) {
   const editionContainer = document.querySelector(".edition-container");
+
+  // Check if a dynamic edition card already exists
+  let dynamicEditionCard = document.querySelector(".dynamic-edition");
+
+  // If no dynamic card exists, create one
   if (!dynamicEditionCard) {
     dynamicEditionCard = document.createElement("div");
     dynamicEditionCard.className = "edition-card dynamic-edition";
@@ -115,26 +117,9 @@ function updateOrCreateDynamicCard(epaper) {
       </a>
       <div class="edition-title"></div>
     `;
-    const originalCard = document.querySelector(
-      ".edition-card:not(.dynamic-edition)"
-    );
-    editionContainer.appendChild(dynamicEditionCard, originalCard);
+    editionContainer.appendChild(dynamicEditionCard);
 
-    let adContainer = document.getElementById("ad-section");
-
-    // Construct the full paths for the advertisement image and link
-    const baseUrl = "https://admin.epdcindia.com/uploads/";
-    const adImageName = epaper.advertisementImage; // Assuming this contains the raw image filename
-    const adLinkName = epaper.advertisementLink; // Assuming this contains the raw link filename
-
-    adContainer.innerHTML = `
-      <a href="${adLinkName}" target="_blank">
-        <img src="${baseUrl + encodeURIComponent(adImageName)}" alt="Advertisement" />
-      </a> 
-    `;
-
-    editionContainer.appendChild(adContainer);
-
+    // Add event listener for the PDF link
     dynamicEditionCard
       .querySelector(".view-pdf")
       .addEventListener("click", function (e) {
@@ -145,6 +130,7 @@ function updateOrCreateDynamicCard(epaper) {
       });
   }
 
+  // Update the existing or newly created dynamic edition card
   const pdfLink = dynamicEditionCard.querySelector(".view-pdf");
   const editionImage = dynamicEditionCard.querySelector("img");
   const editionTitle = dynamicEditionCard.querySelector(".edition-title");
@@ -164,6 +150,21 @@ function updateOrCreateDynamicCard(epaper) {
 
   // Update the edition title
   editionTitle.textContent = epaper.edition1Title || "";
+
+  // Update the advertisement section
+  const adContainer = document.getElementById("ad-section");
+  const adImageName = epaper.advertisementImage; // Assuming this contains the raw image filename
+  const adLinkName = epaper.advertisementLink; // Assuming this contains the raw link filename
+
+  adContainer.innerHTML = `
+    <a href="${adLinkName}" target="_blank">
+      <img src="${
+        baseUrl + encodeURIComponent(adImageName)
+      }" alt="Advertisement" />
+    </a>
+  `;
+
+  editionContainer.appendChild(adContainer);
 }
 
 // PDF.js initialization

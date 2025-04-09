@@ -31,4 +31,11 @@ public class MyRestController {
         // Call the service method to fetch editions by date
         return epaperService.getEditionsByDate(date);
     }
+
+    @GetMapping("/getlatestcontent")
+    public Epaper getPaperByDate() {
+
+        return epaperService.getLatestContent();
+
+    }
 }
