@@ -375,8 +375,8 @@ function showShareModal() {
   }
 
   const scaleFactor = 4; // For high-resolution output
-  const topTextHeight = 40;
-  const bottomTextHeight = 50;
+  const topTextHeight = 100; // Increased space for the larger logo/image
+  const bottomTextHeight = 50; // Space for the footer text
 
   const tempCanvasCrop = document.createElement("canvas");
   const tempCtx = tempCanvasCrop.getContext("2d");
@@ -386,6 +386,7 @@ function showShareModal() {
   tempCtx.scale(scaleFactor, scaleFactor);
   tempCtx.imageSmoothingEnabled = false;
 
+  // Fill the background with white
   tempCtx.fillStyle = "white";
   tempCtx.fillRect(
     0,
@@ -393,50 +394,74 @@ function showShareModal() {
     cropWidth,
     cropHeight + topTextHeight + bottomTextHeight
   );
-  tempCtx.drawImage(
-    tempCanvas,
-    cropLeft,
-    cropTop,
-    cropWidth,
-    cropHeight,
-    0,
-    topTextHeight,
-    cropWidth,
-    cropHeight
-  );
 
-  tempCtx.font = "bold 30px Roboto";
-  tempCtx.fillStyle = "#729c1e";
-  tempCtx.textAlign = "center";
-  tempCtx.fillText("దక్షిణాది", cropWidth / 2, 30);
+  // Load the image to replace "దక్షిణాది"
+  const logoImage = new Image();
+  logoImage.src = "images/News logo.png"; // Replace with the path to your image
 
-  const currentDate = new Date().toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-  tempCtx.font = "12px Arial";
-  tempCtx.fillStyle = "#666";
-  tempCtx.fillText(
-    `${currentDate} | Page: ${pageNum}`,
-    cropWidth / 2,
-    topTextHeight + cropHeight + 20
-  );
-  tempCtx.fillText(
-    "Source: https://dakshinadi.epdcindia.com/",
-    cropWidth / 2,
-    topTextHeight + cropHeight + 40
-  );
+  // Ensure the image is fully loaded before drawing
+  logoImage.onload = function () {
+    // Define the scaled dimensions for the logo
+    const scaledLogoWidth = 250; // Increased width of the logo
+    const scaledLogoHeight = 100; // Increased height of the logo
 
-  const img = new Image();
-  img.src = tempCanvasCrop.toDataURL("image/png", 1.0);
-  img.style.width = `${cropWidth}px`;
-  img.style.height = `${cropHeight + topTextHeight + bottomTextHeight}px`;
-  croppedImageContainer.innerHTML = "";
-  croppedImageContainer.appendChild(img);
-  shareModal.style.display = "block";
+    // Calculate position to center the scaled image horizontally
+    const logoX = cropWidth / 2 - scaledLogoWidth / 2;
+    const logoY = 0; // Place the logo at the top (before the cropped image)
+
+    // Draw the scaled image on the canvas
+    tempCtx.drawImage(logoImage, logoX, logoY, scaledLogoWidth, scaledLogoHeight);
+
+    // Draw the cropped image below the logo
+    tempCtx.drawImage(
+      tempCanvas,
+      cropLeft,
+      cropTop,
+      cropWidth,
+      cropHeight,
+      0,
+      topTextHeight, // Position the cropped image below the logo
+      cropWidth,
+      cropHeight
+    );
+
+    // Add date and source text below the cropped image
+    const currentDate = new Date().toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+    tempCtx.font = "12px Arial";
+    tempCtx.fillStyle = "#666";
+
+    // Center the footer text under the cropped image
+    tempCtx.textAlign = "center"; // Ensure text is centered
+    tempCtx.fillText(
+      `${currentDate} | Page: ${pageNum}`,
+      cropWidth / 2,
+      topTextHeight + cropHeight + 20
+    );
+    tempCtx.fillText(
+      "Source: https://dakshinaadi.epdcindia.com/",
+      cropWidth / 2,
+      topTextHeight + cropHeight + 40
+    );
+
+    // Convert the canvas to an image and display it
+    const img = new Image();
+    img.src = tempCanvasCrop.toDataURL("image/png", 1.0);
+    img.style.width = `${cropWidth}px`;
+    img.style.height = `${cropHeight + topTextHeight + bottomTextHeight}px`;
+    croppedImageContainer.innerHTML = "";
+    croppedImageContainer.appendChild(img);
+    shareModal.style.display = "block";
+  };
+
+  // Handle errors in case the image fails to load
+  logoImage.onerror = function () {
+    console.error("Failed to load the logo image.");
+  };
 }
-
 function closeShareModal() {
   shareModal.style.display = "none";
 }
